@@ -256,15 +256,18 @@ text-shadow:0 0 10px #00f7ff;
 // =========================
 // BIẾN TOÀN CỤC
 // =========================
-let correct=0;
-let wrong=0;
-let win_count=0;
-let total_count=0;
+let correct = 0;
+let wrong = 0;
+let win_count = 0;
+let total_count = 0;
 
-let history=[]; // CHUNG CHO VIP + BASIC
+let history = [];
 
-let mode="vip";
-let lastMD5="";
+let mode = "vip";
+let lastMD5 = "";
+
+// DÒNG LỊCH SỬ HIỆN TẠI
+let currentHistoryIndex = -1;
 
 
 // =========================
@@ -272,19 +275,19 @@ let lastMD5="";
 // =========================
 function setMode(m){
 
-mode=m;
+mode = m;
 
-let box=document.getElementById("modeText");
+let box = document.getElementById("modeText");
 
-if(m==="vip"){
+if(m === "vip"){
 
-box.className="modeBox mode-vip";
-box.innerText="👑 VIP MODE";
+box.className = "modeBox mode-vip";
+box.innerText = "👑 VIP MODE";
 
 }else{
 
-box.className="modeBox mode-basic";
-box.innerText="⚡ BASIC MODE";
+box.className = "modeBox mode-basic";
+box.innerText = "⚡ BASIC MODE";
 }
 }
 
@@ -294,34 +297,34 @@ box.innerText="⚡ BASIC MODE";
 // =========================
 function analyze(){
 
-let md5=document.getElementById("md5").value.trim().toLowerCase();
+let md5 = document.getElementById("md5").value.trim().toLowerCase();
 
-if(md5.length!=32){
+if(md5.length != 32){
 
 alert("MD5 phải đủ 32 ký tự");
 return;
 }
 
-lastMD5=md5;
+lastMD5 = md5;
 
-document.getElementById("analyzeBtn").disabled=true;
-document.getElementById("radarBox").style.display="block";
+document.getElementById("analyzeBtn").disabled = true;
+document.getElementById("radarBox").style.display = "block";
 
 
 // ===== AI SCAN =====
-let percentScan=0;
+let percentScan = 0;
 
-let scanBar=document.getElementById("scanBar");
-let scanText=document.getElementById("scanPercent");
+let scanBar = document.getElementById("scanBar");
+let scanText = document.getElementById("scanPercent");
 
-let scanInterval=setInterval(()=>{
+let scanInterval = setInterval(()=>{
 
-percentScan+=5;
+percentScan += 5;
 
-scanBar.style.width=percentScan+"%";
-scanText.innerText=percentScan;
+scanBar.style.width = percentScan + "%";
+scanText.innerText = percentScan;
 
-if(percentScan>=100){
+if(percentScan >= 100){
 
 clearInterval(scanInterval);
 }
@@ -332,81 +335,81 @@ clearInterval(scanInterval);
 // ===== MAIN RESULT =====
 setTimeout(()=>{
 
-document.getElementById("radarBox").style.display="none";
+document.getElementById("radarBox").style.display = "none";
 
 let result;
 let confidence;
 
 
 // ===== VIP / BASIC =====
-if(mode==="vip"){
+if(mode === "vip"){
 
-let last=parseInt(md5.slice(-1),16);
+let last = parseInt(md5.slice(-1),16);
 
-result = last%2==0 ? "TÀI" : "XỈU";
+result = last % 2 == 0 ? "TÀI" : "XỈU";
 
-confidence = Math.floor(Math.random()*10)+85;
+confidence = Math.floor(Math.random()*10) + 85;
 
 }else{
 
-result = Math.random()<0.5 ? "TÀI" : "XỈU";
+result = Math.random() < 0.5 ? "TÀI" : "XỈU";
 
-confidence = Math.floor(Math.random()*20)+50;
+confidence = Math.floor(Math.random()*20) + 50;
 }
 
 
 // ===== PERCENT =====
-let hexValue=parseInt(md5.substring(28,32),16);
+let hexValue = parseInt(md5.substring(28,32),16);
 
-let base=(mode==="vip") ? 70 : 55;
-let range=(mode==="vip") ? 21 : 31;
+let base = (mode === "vip") ? 70 : 55;
+let range = (mode === "vip") ? 21 : 31;
 
-let tai_percent=base + (hexValue % range);
+let tai_percent = base + (hexValue % range);
 
-if(tai_percent>95){
-tai_percent=95;
+if(tai_percent > 95){
+tai_percent = 95;
 }
 
-let xiu_percent=100-tai_percent;
+let xiu_percent = 100 - tai_percent;
 
 
 // ===== LUCKY =====
-let lucky=parseInt(md5.substring(0,2),16)%100;
+let lucky = parseInt(md5.substring(0,2),16) % 100;
 
 
 // ===== WINRATE =====
-let winrate=total_count>0
+let winrate = total_count > 0
 ? Math.floor((win_count/total_count)*100)
 : 50;
 
 
 // ===== UI =====
-document.getElementById("result").innerText=result;
+document.getElementById("result").innerText = result;
 
-document.getElementById("tai").innerText=tai_percent;
+document.getElementById("tai").innerText = tai_percent;
 
-document.getElementById("xiu").innerText=xiu_percent;
+document.getElementById("xiu").innerText = xiu_percent;
 
-document.getElementById("bar").style.width=
-tai_percent+"%";
+document.getElementById("bar").style.width =
+tai_percent + "%";
 
-document.getElementById("conf").innerText=
-confidence+"%";
+document.getElementById("conf").innerText =
+confidence + "%";
 
-document.getElementById("lucky").innerText=
+document.getElementById("lucky").innerText =
 lucky;
 
-document.getElementById("winrate").innerText=
-winrate+"%";
+document.getElementById("winrate").innerText =
+winrate + "%";
 
 
 // ===== BUTTON =====
-document.getElementById("btnOk").disabled=false;
-document.getElementById("btnFail").disabled=false;
+document.getElementById("btnOk").disabled = false;
+document.getElementById("btnFail").disabled = false;
 
 
 // =========================
-// HISTORY CHUNG
+// HISTORY
 // =========================
 let historyLine =
 "[ " + mode.toUpperCase() + " ] " +
@@ -418,7 +421,10 @@ md5.substring(0,6) +
 
 history.unshift(historyLine);
 
-if(history.length>20){
+// LUÔN LÀ DÒNG MỚI NHẤT
+currentHistoryIndex = 0;
+
+if(history.length > 20){
 
 history.pop();
 }
@@ -428,7 +434,7 @@ history.join("<br>");
 
 
 // ===== RESET BTN =====
-document.getElementById("analyzeBtn").disabled=false;
+document.getElementById("analyzeBtn").disabled = false;
 
 },1200);
 }
@@ -441,15 +447,43 @@ function mark(ok){
 
 total_count++;
 
+let status = "";
+
 if(ok){
 
 correct++;
 win_count++;
+status = "✓ ĐÚNG";
 
 }else{
 
 wrong++;
+status = "✗ SAI";
 }
+
+
+// =========================
+// UPDATE LỊCH SỬ DÒNG VỪA PHÂN TÍCH
+// =========================
+if(currentHistoryIndex > -1 && history[currentHistoryIndex]){
+
+// TRÁNH GHI ĐÈ NHIỀU LẦN
+if(
+!history[currentHistoryIndex].includes("✓ ĐÚNG") &&
+!history[currentHistoryIndex].includes("✗ SAI")
+){
+
+history[currentHistoryIndex] =
+history[currentHistoryIndex] +
+" | " +
+status;
+}
+}
+
+
+// ===== UPDATE HISTORY =====
+document.getElementById("history").innerHTML =
+history.join("<br>");
 
 
 // ===== STATS =====
@@ -464,21 +498,24 @@ Math.floor((win_count/total_count)*100) + "%";
 
 
 // ===== DISABLE =====
-document.getElementById("btnOk").disabled=true;
-document.getElementById("btnFail").disabled=true;
+document.getElementById("btnOk").disabled = true;
+document.getElementById("btnFail").disabled = true;
 
 
 // ===== RESET NEXT =====
-document.getElementById("md5").value="";
-document.getElementById("result").innerText="--";
+document.getElementById("md5").value = "";
 
-document.getElementById("tai").innerText="50";
-document.getElementById("xiu").innerText="50";
+document.getElementById("result").innerText = "--";
 
-document.getElementById("conf").innerText="0%";
-document.getElementById("lucky").innerText="0";
+document.getElementById("tai").innerText = "50";
 
-document.getElementById("bar").style.width="50%";
+document.getElementById("xiu").innerText = "50";
+
+document.getElementById("conf").innerText = "0%";
+
+document.getElementById("lucky").innerText = "0";
+
+document.getElementById("bar").style.width = "50%";
 
 
 // ===== READY NEXT =====
