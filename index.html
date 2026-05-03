@@ -21,7 +21,6 @@ overflow-x:hidden;
 50%{background-position:100% 50%;}
 100%{background-position:0% 50%;}
 }
-
 .header{
 padding:18px;
 font-size:24px;
@@ -31,7 +30,6 @@ backdrop-filter:blur(10px);
 color:#00f7ff;
 text-shadow:0 0 15px #00f7ff;
 }
-
 .box{
 margin:12px;
 padding:15px;
@@ -40,7 +38,6 @@ background:rgba(0,0,0,0.35);
 backdrop-filter:blur(14px);
 box-shadow:0 0 25px rgba(0,255,255,0.35);
 }
-
 input{
 width:90%;
 padding:12px;
@@ -52,7 +49,6 @@ text-align:center;
 font-size:16px;
 box-shadow:0 0 10px #00f7ff inset;
 }
-
 button{
 margin:5px;
 padding:12px 18px;
@@ -61,32 +57,28 @@ border-radius:10px;
 font-weight:bold;
 cursor:pointer;
 }
-
 .mainBtn{
 background:#001f2b;
 color:#00f7ff;
 box-shadow:0 0 10px #00f7ff;
 }
-
 .autoBtn{
 background:#003300;
 color:#00ff66;
 box-shadow:0 0 10px #00ff66;
 }
-
 .stopBtn{
 background:#330000;
 color:#ff1744;
 box-shadow:0 0 10px #ff1744;
 }
-
 .big{
-font-size:50px;
+font-size:38px;
 font-weight:bold;
 color:#00f7ff;
 text-shadow:0 0 20px #00f7ff;
+word-break:break-word;
 }
-
 .bar{
 height:10px;
 background:#222;
@@ -94,35 +86,30 @@ border-radius:10px;
 margin-top:10px;
 overflow:hidden;
 }
-
 .fill{
 height:100%;
 background:linear-gradient(90deg,#ff3d00,#00f7ff);
 width:50%;
 transition:0.5s;
 }
-
 .row{
 display:flex;
 justify-content:space-between;
 padding:4px 10px;
 font-size:14px;
 }
-
 .history{
 font-size:13px;
 text-align:left;
 max-height:180px;
 overflow:auto;
 }
-
 .status{
 font-size:14px;
 margin-top:8px;
 color:#00ff66;
 text-shadow:0 0 10px #00ff66;
 }
-
 .radar{
 width:120px;
 height:120px;
@@ -134,7 +121,6 @@ box-shadow:0 0 20px #00f7ff inset, 0 0 25px #00f7ff;
 overflow:hidden;
 display:none;
 }
-
 .radar::after{
 content:"";
 position:absolute;
@@ -143,7 +129,6 @@ height:100%;
 background:conic-gradient(rgba(0,255,255,0.6) 0deg, transparent 60deg);
 animation:scan 1s linear infinite;
 }
-
 @keyframes scan{
 from{transform:rotate(0deg);}
 to{transform:rotate(360deg);}
@@ -156,7 +141,24 @@ to{transform:rotate(360deg);}
 <div class="header">MD5 PRO AUTO — DUK</div>
 
 <div class="box">
-<input id="md5" placeholder="Nhập MD5 hoặc để AUTO RANDOM">
+<div>LIVE SESSION</div>
+<div class="big" id="liveSession">--</div>
+
+<div>LIVE MD5</div>
+<div id="liveMD5" style="font-size:13px;color:#ffd700;">--</div>
+
+<div>XÚC XẮC</div>
+<div class="big" id="liveDice">--</div>
+
+<div>TỔNG</div>
+<div class="big" id="liveTotal">--</div>
+
+<div>WEB RESULT</div>
+<div class="big" id="liveResult">--</div>
+</div>
+
+<div class="box">
+<input id="md5" placeholder="Nhập MD5 hoặc AUTO WEB">
 <br>
 <button class="mainBtn" onclick="analyze()">PHÂN TÍCH</button>
 <button class="autoBtn" onclick="startAuto()">AUTO ON</button>
@@ -209,21 +211,48 @@ to{transform:rotate(360deg);}
 let correct=0, wrong=0, total=0;
 let history=[];
 let autoLoop=null;
+let currentSession=171424;
 
-// ===== RANDOM MD5 =====
+const WEB={
+session:".session, #session, .phien",
+md5:".md5, .hash, #md5"
+};
+
 function randomMD5(){
 let chars="abcdef0123456789";
 let md5="";
 for(let i=0;i<32;i++){
-md5 += chars[Math.floor(Math.random()*chars.length)];
+md5+=chars[Math.floor(Math.random()*chars.length)];
 }
 return md5;
 }
 
-// ===== MAIN ANALYZE =====
-function analyze(auto=false){
+function getWebText(selector){
+const el=document.querySelector(selector);
+return el ? el.innerText.trim() : null;
+}
 
-let md5=document.getElementById("md5").value.trim().toLowerCase();
+function md5ToDice(md5){
+let hex=md5.slice(-6);
+
+let d1=(parseInt(hex.slice(0,2),16)%6)+1;
+let d2=(parseInt(hex.slice(2,4),16)%6)+1;
+let d3=(parseInt(hex.slice(4,6),16)%6)+1;
+
+let totalDice=d1+d2+d3;
+
+return {
+d1,d2,d3,
+total:totalDice,
+result: totalDice>=11 ? "TÀI":"XỈU"
+};
+}
+
+function analyze(auto=false, forceMD5=null){
+
+let md5=forceMD5
+? forceMD5.toLowerCase()
+: document.getElementById("md5").value.trim().toLowerCase();
 
 if(md5.length!==32){
 md5=randomMD5();
@@ -236,80 +265,142 @@ setTimeout(()=>{
 
 document.getElementById("radar").style.display="none";
 
-let last=parseInt(md5.slice(-1),16);
-let result = last%2===0 ? "TÀI" : "XỈU";
+let dice=md5ToDice(md5);
 
-let hexValue=parseInt(md5.substring(28,32),16);
-let tai_percent=70 + (hexValue % 21);
+let tai_percent=dice.result==="TÀI"
+? 70+(dice.total%21)
+: 100-(70+(dice.total%21));
+
+if(tai_percent<10) tai_percent=12;
+if(tai_percent>95) tai_percent=88;
+
 let xiu_percent=100-tai_percent;
 
-let confidence=Math.floor(Math.random()*10)+90;
+let confidence=90+Math.floor(Math.random()*10);
 let lucky=parseInt(md5.substring(0,2),16)%100;
 
-document.getElementById("result").innerText=result;
+document.getElementById("result").innerText=dice.result;
 document.getElementById("tai").innerText=tai_percent;
 document.getElementById("xiu").innerText=xiu_percent;
 document.getElementById("bar").style.width=tai_percent+"%";
 document.getElementById("conf").innerText=confidence+"%";
 document.getElementById("lucky").innerText=lucky;
 
+document.getElementById("liveMD5").innerText=md5;
+document.getElementById("liveDice").innerText=
+dice.d1+"-"+dice.d2+"-"+dice.d3;
+
+document.getElementById("liveTotal").innerText=dice.total;
+document.getElementById("liveResult").innerText=dice.result;
+
 if(auto){
-autoMark(result, tai_percent, xiu_percent);
-}
-
-history.unshift(
-"[" + new Date().toLocaleTimeString() + "] " +
-result + " | " + md5.substring(0,8)
-);
-
-if(history.length>20) history.pop();
-
-document.getElementById("history").innerHTML=history.join("<br>");
-
-},800);
-}
-
-// ===== AUTO SELF LEARNING =====
-function autoMark(result, tai, xiu){
-
 total++;
-
-let predicted = tai >= xiu ? "TÀI" : "XỈU";
-
-if(predicted===result){
+if(document.getElementById("result").innerText===dice.result){
 correct++;
 }else{
 wrong++;
 }
-
-let winrate=Math.floor((correct/total)*100);
+}
 
 document.getElementById("stats").innerText=
 "ĐÚNG: "+correct+" | SAI: "+wrong;
 
-document.getElementById("winrate").innerText=winrate+"%";
+document.getElementById("winrate").innerText=
+total>0 ? Math.floor((correct/total)*100)+"%" : "50%";
+
+history.unshift(
+"Phiên #"+currentSession+
+" | "+md5.substring(0,8)+
+" | "+dice.d1+"-"+dice.d2+"-"+dice.d3+
+" | Tổng: "+dice.total+
+" | "+dice.result
+);
+
+if(history.length>20) history.pop();
+
+document.getElementById("history").innerHTML=
+history.join("<br>");
+
+},800);
 }
 
-// ===== AUTO START =====
+function syncFromWeb(){
+
+let webSession=getWebText(WEB.session);
+let webMD5=getWebText(WEB.md5);
+
+if(!webMD5){
+let match=document.body.innerText.match(/[a-f0-9]{32}/i);
+webMD5=match ? match[0] : null;
+}
+
+if(webSession && webSession!=currentSession){
+
+currentSession=webSession;
+
+document.getElementById("liveSession").innerText=
+"#"+webSession;
+
+if(webMD5){
+document.getElementById("md5").value=webMD5;
+analyze(true, webMD5);
+}
+}
+}
+
 function startAuto(){
 
 if(autoLoop) return;
 
-document.getElementById("autoStatus").innerText="AUTO: RUNNING";
+document.getElementById("autoStatus").innerText=
+"AUTO: RUNNING";
 
 autoLoop=setInterval(()=>{
+
+let hasWeb=
+document.querySelector(WEB.session) ||
+document.querySelector(WEB.md5);
+
+if(hasWeb){
+
+syncFromWeb();
+
+}else{
+
+currentSession++;
+
+document.getElementById("liveSession").innerText=
+"#"+currentSession;
+
 analyze(true);
+}
+
 },2500);
 }
 
-// ===== AUTO STOP =====
 function stopAuto(){
-
 clearInterval(autoLoop);
 autoLoop=null;
 
-document.getElementById("autoStatus").innerText="AUTO: OFF";
+document.getElementById("autoStatus").innerText=
+"AUTO: OFF";
 }
+
+const observer=new MutationObserver(()=>{
+if(autoLoop){
+syncFromWeb();
+}
+});
+
+observer.observe(document.body,{
+childList:true,
+subtree:true
+});
+
+window.onload=()=>{
+document.getElementById("liveSession").innerText=
+"#"+currentSession;
+};
 </script>
 
 </body>
