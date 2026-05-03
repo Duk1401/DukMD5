@@ -248,49 +248,56 @@ text-shadow:0 0 10px #00f7ff;
 
 <!-- HISTORY VIP -->
 <div class="box">
-<div>LỊCH SỬ VIP (20)</div>
-<div class="history" id="historyVip"></div>
-</div>
-
-<!-- HISTORY BASIC -->
-<div class="box">
-<div>LỊCH SỬ BASIC (20)</div>
-<div class="history" id="historyBasic"></div>
+<div>LỊCH SỬ PHÂN TÍCH (20)</div>
+<div class="history" id="history"></div>
 </div>
 
 <script>
+// =========================
+// BIẾN TOÀN CỤC
+// =========================
 let correct=0;
 let wrong=0;
 let win_count=0;
 let total_count=0;
 
-let historyVip=[];
-let historyBasic=[];
+let history=[]; // CHUNG CHO VIP + BASIC
 
 let mode="vip";
 let lastMD5="";
 
+
+// =========================
 // MODE
+// =========================
 function setMode(m){
+
 mode=m;
 
 let box=document.getElementById("modeText");
 
 if(m==="vip"){
+
 box.className="modeBox mode-vip";
 box.innerText="👑 VIP MODE";
+
 }else{
+
 box.className="modeBox mode-basic";
 box.innerText="⚡ BASIC MODE";
 }
 }
 
+
+// =========================
 // ANALYZE
+// =========================
 function analyze(){
 
 let md5=document.getElementById("md5").value.trim().toLowerCase();
 
 if(md5.length!=32){
+
 alert("MD5 phải đủ 32 ký tự");
 return;
 }
@@ -300,171 +307,185 @@ lastMD5=md5;
 document.getElementById("analyzeBtn").disabled=true;
 document.getElementById("radarBox").style.display="block";
 
+
+// ===== AI SCAN =====
 let percentScan=0;
+
 let scanBar=document.getElementById("scanBar");
 let scanText=document.getElementById("scanPercent");
 
 let scanInterval=setInterval(()=>{
+
 percentScan+=5;
+
 scanBar.style.width=percentScan+"%";
 scanText.innerText=percentScan;
 
 if(percentScan>=100){
+
 clearInterval(scanInterval);
 }
+
 },60);
 
+
+// ===== MAIN RESULT =====
 setTimeout(()=>{
 
 document.getElementById("radarBox").style.display="none";
 
-let result, confidence;
+let result;
+let confidence;
 
+
+// ===== VIP / BASIC =====
 if(mode==="vip"){
+
 let last=parseInt(md5.slice(-1),16);
-result = last%2==0 ? "TÀI":"XỈU";
+
+result = last%2==0 ? "TÀI" : "XỈU";
+
 confidence = Math.floor(Math.random()*10)+85;
+
 }else{
-result = Math.random()<0.5 ? "TÀI":"XỈU";
+
+result = Math.random()<0.5 ? "TÀI" : "XỈU";
+
 confidence = Math.floor(Math.random()*20)+50;
 }
 
+
+// ===== PERCENT =====
 let hexValue=parseInt(md5.substring(28,32),16);
 
 let base=(mode==="vip") ? 70 : 55;
 let range=(mode==="vip") ? 21 : 31;
 
 let tai_percent=base + (hexValue % range);
-if(tai_percent>95) tai_percent=95;
+
+if(tai_percent>95){
+tai_percent=95;
+}
 
 let xiu_percent=100-tai_percent;
 
+
+// ===== LUCKY =====
 let lucky=parseInt(md5.substring(0,2),16)%100;
-let winrate=total_count>0 ? Math.floor((win_count/total_count)*100) : 50;
 
+
+// ===== WINRATE =====
+let winrate=total_count>0
+? Math.floor((win_count/total_count)*100)
+: 50;
+
+
+// ===== UI =====
 document.getElementById("result").innerText=result;
-document.getElementById("tai").innerText=tai_percent;
-document.getElementById("xiu").innerText=xiu_percent;
-document.getElementById("bar").style.width=tai_percent+"%";
-document.getElementById("conf").innerText=confidence+"%";
-document.getElementById("lucky").innerText=lucky;
-document.getElementById("winrate").innerText=winrate+"%";
 
+document.getElementById("tai").innerText=tai_percent;
+
+document.getElementById("xiu").innerText=xiu_percent;
+
+document.getElementById("bar").style.width=
+tai_percent+"%";
+
+document.getElementById("conf").innerText=
+confidence+"%";
+
+document.getElementById("lucky").innerText=
+lucky;
+
+document.getElementById("winrate").innerText=
+winrate+"%";
+
+
+// ===== BUTTON =====
 document.getElementById("btnOk").disabled=false;
 document.getElementById("btnFail").disabled=false;
 
-let historyLine=
-result+
-" | "+md5.substring(0,6)+
-" | AI:"+confidence+
-"% | L:"+lucky;
 
-if(mode==="vip"){
+// =========================
+// HISTORY CHUNG
+// =========================
+let historyLine =
+"[ " + mode.toUpperCase() + " ] " +
+result +
+" | " +
+md5.substring(0,6) +
+" | AI:" + confidence +
+"% | L:" + lucky;
 
-historyVip.unshift(historyLine);
+history.unshift(historyLine);
 
-if(historyVip.length>20) historyVip.pop();
+if(history.length>20){
 
-document.getElementById("historyVip").innerHTML=
-historyVip.join("<br>");
-
-}else{
-
-historyBasic.unshift(historyLine);
-
-if(historyBasic.length>20) historyBasic.pop();
-
-document.getElementById("historyBasic").innerHTML=
-historyBasic.join("<br>");
+history.pop();
 }
 
+document.getElementById("history").innerHTML =
+history.join("<br>");
+
+
+// ===== RESET BTN =====
 document.getElementById("analyzeBtn").disabled=false;
 
 },1200);
 }
 
-// MARK RESULT
+
+// =========================
+// MARK
+// =========================
 function mark(ok){
 
 total_count++;
 
 if(ok){
+
 correct++;
 win_count++;
+
 }else{
+
 wrong++;
 }
 
-document.getElementById("stats").innerText=
-"ĐÚNG: "+correct+" | SAI: "+wrong;
 
-document.getElementById("winrate").innerText=
-Math.floor((win_count/total_count)*100)+"%";
+// ===== STATS =====
+document.getElementById("stats").innerText =
+"ĐÚNG: " + correct +
+" | SAI: " + wrong;
 
+
+// ===== WINRATE =====
+document.getElementById("winrate").innerText =
+Math.floor((win_count/total_count)*100) + "%";
+
+
+// ===== DISABLE =====
 document.getElementById("btnOk").disabled=true;
 document.getElementById("btnFail").disabled=true;
 
-// RESET CHO PHIÊN SAU
+
+// ===== RESET NEXT =====
 document.getElementById("md5").value="";
 document.getElementById("result").innerText="--";
+
 document.getElementById("tai").innerText="50";
 document.getElementById("xiu").innerText="50";
+
 document.getElementById("conf").innerText="0%";
 document.getElementById("lucky").innerText="0";
+
 document.getElementById("bar").style.width="50%";
 
-// READY NEXT
+
+// ===== READY NEXT =====
 setTimeout(()=>{
+
 document.getElementById("md5").focus();
+
 },300);
 }
-
-/* FIREWORK */
-let canvas=document.getElementById("fireworks");
-let ctx=canvas.getContext("2d");
-
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
-
-let particles=[];
-
-function firework(){
-let x=Math.random()*canvas.width;
-let y=canvas.height;
-
-for(let i=0;i<40;i++){
-particles.push({
-x:x,
-y:y,
-vx:(Math.random()-0.5)*4,
-vy:-Math.random()*6-2,
-life:60
-});
-}
-}
-
-function animate(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-
-particles.forEach((p,i)=>{
-p.x+=p.vx;
-p.y+=p.vy;
-p.life--;
-
-ctx.fillStyle="cyan";
-ctx.fillRect(p.x,p.y,2,2);
-
-if(p.life<=0){
-particles.splice(i,1);
-}
-});
-
-requestAnimationFrame(animate);
-}
-
-setInterval(firework,1200);
-animate();
 </script>
-
-</body>
-</html>
