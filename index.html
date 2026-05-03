@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta charset="UTF-8">
-<title>MD5 PRO AUTO — DUK</title>
+<title>MD5 PRO — DUK</title>
 
 <style>
 body{
@@ -14,13 +14,26 @@ background-size:600% 600%;
 animation:bgMove 12s ease infinite;
 color:white;
 text-align:center;
-overflow-x:hidden;
+overflow:hidden;
 }
 @keyframes bgMove{
 0%{background-position:0% 50%;}
 50%{background-position:100% 50%;}
 100%{background-position:0% 50%;}
 }
+
+/* FIREWORK */
+#fireworks{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:none;
+z-index:0;
+}
+
+/* HEADER */
 .header{
 padding:18px;
 font-size:24px;
@@ -28,8 +41,35 @@ font-weight:bold;
 background:rgba(0,0,0,0.4);
 backdrop-filter:blur(10px);
 color:#00f7ff;
-text-shadow:0 0 15px #00f7ff;
+text-shadow:0 0 15px #00f7ff,0 0 40px #00f7ff;
 }
+
+/* MODE */
+.modeBox{
+margin-top:10px;
+padding:10px 20px;
+border-radius:14px;
+font-size:15px;
+font-weight:bold;
+letter-spacing:1px;
+display:inline-block;
+min-width:160px;
+transition:0.3s;
+}
+.mode-vip{
+color:#ffd700;
+background:rgba(255,215,0,0.08);
+box-shadow:0 0 12px #ffd700,0 0 30px rgba(255,215,0,0.6),inset 0 0 12px #ffd700;
+text-shadow:0 0 10px #ffd700,0 0 20px #ffd700;
+}
+.mode-basic{
+color:#00f7ff;
+background:rgba(0,247,255,0.08);
+box-shadow:0 0 12px #00f7ff,0 0 30px rgba(0,247,255,0.6),inset 0 0 12px #00f7ff;
+text-shadow:0 0 10px #00f7ff,0 0 20px #00f7ff;
+}
+
+/* BOX */
 .box{
 margin:12px;
 padding:15px;
@@ -37,7 +77,11 @@ border-radius:16px;
 background:rgba(0,0,0,0.35);
 backdrop-filter:blur(14px);
 box-shadow:0 0 25px rgba(0,255,255,0.35);
+position:relative;
+z-index:2;
 }
+
+/* INPUT */
 input{
 width:90%;
 padding:12px;
@@ -49,8 +93,10 @@ text-align:center;
 font-size:16px;
 box-shadow:0 0 10px #00f7ff inset;
 }
+
+/* BUTTON */
 button{
-margin:5px;
+margin-top:10px;
 padding:12px 18px;
 border:none;
 border-radius:10px;
@@ -62,23 +108,27 @@ background:#001f2b;
 color:#00f7ff;
 box-shadow:0 0 10px #00f7ff;
 }
-.autoBtn{
-background:#003300;
-color:#00ff66;
-box-shadow:0 0 10px #00ff66;
+.vipBtn{
+background:#2b2100;
+color:#ffd700;
+box-shadow:0 0 12px #ffd700;
 }
-.stopBtn{
-background:#330000;
-color:#ff1744;
-box-shadow:0 0 10px #ff1744;
+.ok{
+background:#00c853;
+color:white;
 }
+.fail{
+background:#ff1744;
+color:white;
+}
+
 .big{
-font-size:38px;
+font-size:50px;
 font-weight:bold;
 color:#00f7ff;
 text-shadow:0 0 20px #00f7ff;
-word-break:break-word;
 }
+
 .bar{
 height:10px;
 background:#222;
@@ -92,23 +142,27 @@ background:linear-gradient(90deg,#ff3d00,#00f7ff);
 width:50%;
 transition:0.5s;
 }
+
 .row{
 display:flex;
 justify-content:space-between;
-padding:4px 10px;
+padding:6px 8px;
 font-size:14px;
+gap:8px;
+flex-wrap:wrap;
 }
+
 .history{
 font-size:13px;
 text-align:left;
-max-height:180px;
+max-height:160px;
 overflow:auto;
 }
-.status{
-font-size:14px;
-margin-top:8px;
-color:#00ff66;
-text-shadow:0 0 10px #00ff66;
+
+/* RADAR */
+.radarBox{
+display:none;
+margin-top:10px;
 }
 .radar{
 width:120px;
@@ -119,7 +173,6 @@ position:relative;
 background:radial-gradient(circle, rgba(0,255,255,0.15) 0%, rgba(0,0,0,0.8) 70%);
 box-shadow:0 0 20px #00f7ff inset, 0 0 25px #00f7ff;
 overflow:hidden;
-display:none;
 }
 .radar::after{
 content:"";
@@ -133,43 +186,43 @@ animation:scan 1s linear infinite;
 from{transform:rotate(0deg);}
 to{transform:rotate(360deg);}
 }
+.scanText{
+color:#00f7ff;
+font-size:13px;
+text-shadow:0 0 10px #00f7ff;
+}
 </style>
 </head>
 
 <body>
+<canvas id="fireworks"></canvas>
 
-<div class="header">MD5 PRO AUTO — DUK</div>
+<div class="header">MD5 PRO — DUK</div>
 
+<!-- MODE -->
 <div class="box">
-<div>LIVE SESSION</div>
-<div class="big" id="liveSession">--</div>
-
-<div>LIVE MD5</div>
-<div id="liveMD5" style="font-size:13px;color:#ffd700;">--</div>
-
-<div>XÚC XẮC</div>
-<div class="big" id="liveDice">--</div>
-
-<div>TỔNG</div>
-<div class="big" id="liveTotal">--</div>
-
-<div>WEB RESULT</div>
-<div class="big" id="liveResult">--</div>
+<button class="vipBtn" onclick="setMode('vip')">VIP</button>
+<button class="mainBtn" onclick="setMode('basic')">BASIC</button>
+<div id="modeText" class="modeBox mode-vip">👑 VIP MODE</div>
 </div>
 
+<!-- INPUT -->
 <div class="box">
-<input id="md5" placeholder="Nhập MD5 hoặc AUTO WEB">
+<input id="md5" placeholder="Nhập MD5 32 ký tự">
 <br>
-<button class="mainBtn" onclick="analyze()">PHÂN TÍCH</button>
-<button class="autoBtn" onclick="startAuto()">AUTO ON</button>
-<button class="stopBtn" onclick="stopAuto()">AUTO OFF</button>
+<button class="mainBtn" id="analyzeBtn" onclick="analyze()">PHÂN TÍCH</button>
 
-<div class="radar" id="radar"></div>
-<div class="status" id="autoStatus">AUTO: OFF</div>
+<div class="radarBox" id="radarBox">
+<div class="radar"></div>
+<div class="scanText">AI SCAN: <span id="scanPercent">0</span>%</div>
+<div class="bar"><div class="fill" id="scanBar" style="width:0%"></div></div>
+</div>
 </div>
 
+<!-- RESULT -->
 <div class="box">
 <div>DỰ ĐOÁN</div>
+
 <div class="big" id="result">--</div>
 
 <div class="bar">
@@ -182,225 +235,235 @@ to{transform:rotate(360deg);}
 </div>
 
 <div class="row">
-<span>ĐỘ TIN CẬY</span>
-<span id="conf">0%</span>
+<span>THUẬT TOÁN: <span id="conf">0%</span></span>
+<span>MAY MẮN: <span id="lucky">0</span></span>
+<span>THẮNG: <span id="winrate">50%</span></span>
 </div>
 
-<div class="row">
-<span>MAY MẮN</span>
-<span id="lucky">0</span>
-</div>
+<button class="ok" id="btnOk" onclick="mark(true)" disabled>✓ ĐÚNG</button>
+<button class="fail" id="btnFail" onclick="mark(false)" disabled>✗ SAI</button>
 
-<div class="row">
-<span>TỶ LỆ AUTO</span>
-<span id="winrate">50%</span>
-</div>
-</div>
-
-<div class="box">
-<div>THỐNG KÊ</div>
 <div id="stats">ĐÚNG: 0 | SAI: 0</div>
 </div>
 
+<!-- HISTORY VIP -->
 <div class="box">
-<div>LỊCH SỬ AUTO (20)</div>
-<div class="history" id="history"></div>
+<div>LỊCH SỬ VIP (20)</div>
+<div class="history" id="historyVip"></div>
+</div>
+
+<!-- HISTORY BASIC -->
+<div class="box">
+<div>LỊCH SỬ BASIC (20)</div>
+<div class="history" id="historyBasic"></div>
 </div>
 
 <script>
-let correct=0, wrong=0, total=0;
-let history=[];
-let autoLoop=null;
-let currentSession=171424;
+let correct=0;
+let wrong=0;
+let win_count=0;
+let total_count=0;
 
-const WEB={
-session:".session, #session, .phien",
-md5:".md5, .hash, #md5"
-};
+let historyVip=[];
+let historyBasic=[];
 
-function randomMD5(){
-let chars="abcdef0123456789";
-let md5="";
-for(let i=0;i<32;i++){
-md5+=chars[Math.floor(Math.random()*chars.length)];
+let mode="vip";
+let lastMD5="";
+
+// MODE
+function setMode(m){
+mode=m;
+
+let box=document.getElementById("modeText");
+
+if(m==="vip"){
+box.className="modeBox mode-vip";
+box.innerText="👑 VIP MODE";
+}else{
+box.className="modeBox mode-basic";
+box.innerText="⚡ BASIC MODE";
 }
-return md5;
-}
-
-function getWebText(selector){
-const el=document.querySelector(selector);
-return el ? el.innerText.trim() : null;
-}
-
-function md5ToDice(md5){
-let hex=md5.slice(-6);
-
-let d1=(parseInt(hex.slice(0,2),16)%6)+1;
-let d2=(parseInt(hex.slice(2,4),16)%6)+1;
-let d3=(parseInt(hex.slice(4,6),16)%6)+1;
-
-let totalDice=d1+d2+d3;
-
-return {
-d1,d2,d3,
-total:totalDice,
-result: totalDice>=11 ? "TÀI":"XỈU"
-};
 }
 
-function analyze(auto=false, forceMD5=null){
+// ANALYZE
+function analyze(){
 
-let md5=forceMD5
-? forceMD5.toLowerCase()
-: document.getElementById("md5").value.trim().toLowerCase();
+let md5=document.getElementById("md5").value.trim().toLowerCase();
 
-if(md5.length!==32){
-md5=randomMD5();
-document.getElementById("md5").value=md5;
+if(md5.length!=32){
+alert("MD5 phải đủ 32 ký tự");
+return;
 }
 
-document.getElementById("radar").style.display="block";
+lastMD5=md5;
+
+document.getElementById("analyzeBtn").disabled=true;
+document.getElementById("radarBox").style.display="block";
+
+let percentScan=0;
+let scanBar=document.getElementById("scanBar");
+let scanText=document.getElementById("scanPercent");
+
+let scanInterval=setInterval(()=>{
+percentScan+=5;
+scanBar.style.width=percentScan+"%";
+scanText.innerText=percentScan;
+
+if(percentScan>=100){
+clearInterval(scanInterval);
+}
+},60);
 
 setTimeout(()=>{
 
-document.getElementById("radar").style.display="none";
+document.getElementById("radarBox").style.display="none";
 
-let dice=md5ToDice(md5);
+let result, confidence;
 
-let tai_percent=dice.result==="TÀI"
-? 70+(dice.total%21)
-: 100-(70+(dice.total%21));
+if(mode==="vip"){
+let last=parseInt(md5.slice(-1),16);
+result = last%2==0 ? "TÀI":"XỈU";
+confidence = Math.floor(Math.random()*10)+85;
+}else{
+result = Math.random()<0.5 ? "TÀI":"XỈU";
+confidence = Math.floor(Math.random()*20)+50;
+}
 
-if(tai_percent<10) tai_percent=12;
-if(tai_percent>95) tai_percent=88;
+let hexValue=parseInt(md5.substring(28,32),16);
+
+let base=(mode==="vip") ? 70 : 55;
+let range=(mode==="vip") ? 21 : 31;
+
+let tai_percent=base + (hexValue % range);
+if(tai_percent>95) tai_percent=95;
 
 let xiu_percent=100-tai_percent;
 
-let confidence=90+Math.floor(Math.random()*10);
 let lucky=parseInt(md5.substring(0,2),16)%100;
+let winrate=total_count>0 ? Math.floor((win_count/total_count)*100) : 50;
 
-document.getElementById("result").innerText=dice.result;
+document.getElementById("result").innerText=result;
 document.getElementById("tai").innerText=tai_percent;
 document.getElementById("xiu").innerText=xiu_percent;
 document.getElementById("bar").style.width=tai_percent+"%";
 document.getElementById("conf").innerText=confidence+"%";
 document.getElementById("lucky").innerText=lucky;
+document.getElementById("winrate").innerText=winrate+"%";
 
-document.getElementById("liveMD5").innerText=md5;
-document.getElementById("liveDice").innerText=
-dice.d1+"-"+dice.d2+"-"+dice.d3;
+document.getElementById("btnOk").disabled=false;
+document.getElementById("btnFail").disabled=false;
 
-document.getElementById("liveTotal").innerText=dice.total;
-document.getElementById("liveResult").innerText=dice.result;
+let historyLine=
+result+
+" | "+md5.substring(0,6)+
+" | AI:"+confidence+
+"% | L:"+lucky;
 
-if(auto){
-total++;
-if(document.getElementById("result").innerText===dice.result){
+if(mode==="vip"){
+
+historyVip.unshift(historyLine);
+
+if(historyVip.length>20) historyVip.pop();
+
+document.getElementById("historyVip").innerHTML=
+historyVip.join("<br>");
+
+}else{
+
+historyBasic.unshift(historyLine);
+
+if(historyBasic.length>20) historyBasic.pop();
+
+document.getElementById("historyBasic").innerHTML=
+historyBasic.join("<br>");
+}
+
+document.getElementById("analyzeBtn").disabled=false;
+
+},1200);
+}
+
+// MARK RESULT
+function mark(ok){
+
+total_count++;
+
+if(ok){
 correct++;
+win_count++;
 }else{
 wrong++;
-}
 }
 
 document.getElementById("stats").innerText=
 "ĐÚNG: "+correct+" | SAI: "+wrong;
 
 document.getElementById("winrate").innerText=
-total>0 ? Math.floor((correct/total)*100)+"%" : "50%";
+Math.floor((win_count/total_count)*100)+"%";
 
-history.unshift(
-"Phiên #"+currentSession+
-" | "+md5.substring(0,8)+
-" | "+dice.d1+"-"+dice.d2+"-"+dice.d3+
-" | Tổng: "+dice.total+
-" | "+dice.result
-);
+document.getElementById("btnOk").disabled=true;
+document.getElementById("btnFail").disabled=true;
 
-if(history.length>20) history.pop();
+// RESET CHO PHIÊN SAU
+document.getElementById("md5").value="";
+document.getElementById("result").innerText="--";
+document.getElementById("tai").innerText="50";
+document.getElementById("xiu").innerText="50";
+document.getElementById("conf").innerText="0%";
+document.getElementById("lucky").innerText="0";
+document.getElementById("bar").style.width="50%";
 
-document.getElementById("history").innerHTML=
-history.join("<br>");
-
-},800);
+// READY NEXT
+setTimeout(()=>{
+document.getElementById("md5").focus();
+},300);
 }
 
-function syncFromWeb(){
+/* FIREWORK */
+let canvas=document.getElementById("fireworks");
+let ctx=canvas.getContext("2d");
 
-let webSession=getWebText(WEB.session);
-let webMD5=getWebText(WEB.md5);
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
 
-if(!webMD5){
-let match=document.body.innerText.match(/[a-f0-9]{32}/i);
-webMD5=match ? match[0] : null;
+let particles=[];
+
+function firework(){
+let x=Math.random()*canvas.width;
+let y=canvas.height;
+
+for(let i=0;i<40;i++){
+particles.push({
+x:x,
+y:y,
+vx:(Math.random()-0.5)*4,
+vy:-Math.random()*6-2,
+life:60
+});
+}
 }
 
-if(webSession && webSession!=currentSession){
+function animate(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-currentSession=webSession;
+particles.forEach((p,i)=>{
+p.x+=p.vx;
+p.y+=p.vy;
+p.life--;
 
-document.getElementById("liveSession").innerText=
-"#"+webSession;
+ctx.fillStyle="cyan";
+ctx.fillRect(p.x,p.y,2,2);
 
-if(webMD5){
-document.getElementById("md5").value=webMD5;
-analyze(true, webMD5);
-}
-}
-}
-
-function startAuto(){
-
-if(autoLoop) return;
-
-document.getElementById("autoStatus").innerText=
-"AUTO: RUNNING";
-
-autoLoop=setInterval(()=>{
-
-let hasWeb=
-document.querySelector(WEB.session) ||
-document.querySelector(WEB.md5);
-
-if(hasWeb){
-
-syncFromWeb();
-
-}else{
-
-currentSession++;
-
-document.getElementById("liveSession").innerText=
-"#"+currentSession;
-
-analyze(true);
-}
-
-},2500);
-}
-
-function stopAuto(){
-clearInterval(autoLoop);
-autoLoop=null;
-
-document.getElementById("autoStatus").innerText=
-"AUTO: OFF";
-}
-
-const observer=new MutationObserver(()=>{
-if(autoLoop){
-syncFromWeb();
+if(p.life<=0){
+particles.splice(i,1);
 }
 });
 
-observer.observe(document.body,{
-childList:true,
-subtree:true
-});
+requestAnimationFrame(animate);
+}
 
-window.onload=()=>{
-document.getElementById("liveSession").innerText=
-"#"+currentSession;
-};
+setInterval(firework,1200);
+animate();
 </script>
 
 </body>
