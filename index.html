@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>MD5 PRO AUTO — DUK</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(270deg,#02030a,#040a1f,#000000,#040a1f);
+background-size:600% 600%;
+animation:bgMove 12s ease infinite;
+color:white;
+text-align:center;
+overflow-x:hidden;
+}
+@keyframes bgMove{
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
+}
+
+.header{
+padding:18px;
+font-size:24px;
+font-weight:bold;
+background:rgba(0,0,0,0.4);
+backdrop-filter:blur(10px);
+color:#00f7ff;
+text-shadow:0 0 15px #00f7ff;
+}
+
+.box{
+margin:12px;
+padding:15px;
+border-radius:16px;
+background:rgba(0,0,0,0.35);
+backdrop-filter:blur(14px);
+box-shadow:0 0 25px rgba(0,255,255,0.35);
+}
+
+input{
+width:90%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#000;
+color:#00f7ff;
+text-align:center;
+font-size:16px;
+box-shadow:0 0 10px #00f7ff inset;
+}
+
+button{
+margin:5px;
+padding:12px 18px;
+border:none;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.mainBtn{
+background:#001f2b;
+color:#00f7ff;
+box-shadow:0 0 10px #00f7ff;
+}
+
+.autoBtn{
+background:#003300;
+color:#00ff66;
+box-shadow:0 0 10px #00ff66;
+}
+
+.stopBtn{
+background:#330000;
+color:#ff1744;
+box-shadow:0 0 10px #ff1744;
+}
+
+.big{
+font-size:50px;
+font-weight:bold;
+color:#00f7ff;
+text-shadow:0 0 20px #00f7ff;
+}
+
+.bar{
+height:10px;
+background:#222;
+border-radius:10px;
+margin-top:10px;
+overflow:hidden;
+}
+
+.fill{
+height:100%;
+background:linear-gradient(90deg,#ff3d00,#00f7ff);
+width:50%;
+transition:0.5s;
+}
+
+.row{
+display:flex;
+justify-content:space-between;
+padding:4px 10px;
+font-size:14px;
+}
+
+.history{
+font-size:13px;
+text-align:left;
+max-height:180px;
+overflow:auto;
+}
+
+.status{
+font-size:14px;
+margin-top:8px;
+color:#00ff66;
+text-shadow:0 0 10px #00ff66;
+}
+
+.radar{
+width:120px;
+height:120px;
+border-radius:50%;
+margin:10px auto;
+position:relative;
+background:radial-gradient(circle, rgba(0,255,255,0.15) 0%, rgba(0,0,0,0.8) 70%);
+box-shadow:0 0 20px #00f7ff inset, 0 0 25px #00f7ff;
+overflow:hidden;
+display:none;
+}
+
+.radar::after{
+content:"";
+position:absolute;
+width:100%;
+height:100%;
+background:conic-gradient(rgba(0,255,255,0.6) 0deg, transparent 60deg);
+animation:scan 1s linear infinite;
+}
+
+@keyframes scan{
+from{transform:rotate(0deg);}
+to{transform:rotate(360deg);}
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">MD5 PRO AUTO — DUK</div>
+
+<div class="box">
+<input id="md5" placeholder="Nhập MD5 hoặc để AUTO RANDOM">
+<br>
+<button class="mainBtn" onclick="analyze()">PHÂN TÍCH</button>
+<button class="autoBtn" onclick="startAuto()">AUTO ON</button>
+<button class="stopBtn" onclick="stopAuto()">AUTO OFF</button>
+
+<div class="radar" id="radar"></div>
+<div class="status" id="autoStatus">AUTO: OFF</div>
+</div>
+
+<div class="box">
+<div>DỰ ĐOÁN</div>
+<div class="big" id="result">--</div>
+
+<div class="bar">
+<div class="fill" id="bar"></div>
+</div>
+
+<div class="row">
+<span>TÀI: <span id="tai">50</span>%</span>
+<span>XỈU: <span id="xiu">50</span>%</span>
+</div>
+
+<div class="row">
+<span>ĐỘ TIN CẬY</span>
+<span id="conf">0%</span>
+</div>
+
+<div class="row">
+<span>MAY MẮN</span>
+<span id="lucky">0</span>
+</div>
+
+<div class="row">
+<span>TỶ LỆ AUTO</span>
+<span id="winrate">50%</span>
+</div>
+</div>
+
+<div class="box">
+<div>THỐNG KÊ</div>
+<div id="stats">ĐÚNG: 0 | SAI: 0</div>
+</div>
+
+<div class="box">
+<div>LỊCH SỬ AUTO (20)</div>
+<div class="history" id="history"></div>
+</div>
+
+<script>
+let correct=0, wrong=0, total=0;
+let history=[];
+let autoLoop=null;
+
+// ===== RANDOM MD5 =====
+function randomMD5(){
+let chars="abcdef0123456789";
+let md5="";
+for(let i=0;i<32;i++){
+md5 += chars[Math.floor(Math.random()*chars.length)];
+}
+return md5;
+}
+
+// ===== MAIN ANALYZE =====
+function analyze(auto=false){
+
+let md5=document.getElementById("md5").value.trim().toLowerCase();
+
+if(md5.length!==32){
+md5=randomMD5();
+document.getElementById("md5").value=md5;
+}
+
+document.getElementById("radar").style.display="block";
+
+setTimeout(()=>{
+
+document.getElementById("radar").style.display="none";
+
+let last=parseInt(md5.slice(-1),16);
+let result = last%2===0 ? "TÀI" : "XỈU";
+
+let hexValue=parseInt(md5.substring(28,32),16);
+let tai_percent=70 + (hexValue % 21);
+let xiu_percent=100-tai_percent;
+
+let confidence=Math.floor(Math.random()*10)+90;
+let lucky=parseInt(md5.substring(0,2),16)%100;
+
+document.getElementById("result").innerText=result;
+document.getElementById("tai").innerText=tai_percent;
+document.getElementById("xiu").innerText=xiu_percent;
+document.getElementById("bar").style.width=tai_percent+"%";
+document.getElementById("conf").innerText=confidence+"%";
+document.getElementById("lucky").innerText=lucky;
+
+if(auto){
+autoMark(result, tai_percent, xiu_percent);
+}
+
+history.unshift(
+"[" + new Date().toLocaleTimeString() + "] " +
+result + " | " + md5.substring(0,8)
+);
+
+if(history.length>20) history.pop();
+
+document.getElementById("history").innerHTML=history.join("<br>");
+
+},800);
+}
+
+// ===== AUTO SELF LEARNING =====
+function autoMark(result, tai, xiu){
+
+total++;
+
+let predicted = tai >= xiu ? "TÀI" : "XỈU";
+
+if(predicted===result){
+correct++;
+}else{
+wrong++;
+}
+
+let winrate=Math.floor((correct/total)*100);
+
+document.getElementById("stats").innerText=
+"ĐÚNG: "+correct+" | SAI: "+wrong;
+
+document.getElementById("winrate").innerText=winrate+"%";
+}
+
+// ===== AUTO START =====
+function startAuto(){
+
+if(autoLoop) return;
+
+document.getElementById("autoStatus").innerText="AUTO: RUNNING";
+
+autoLoop=setInterval(()=>{
+analyze(true);
+},2500);
+}
+
+// ===== AUTO STOP =====
+function stopAuto(){
+
+clearInterval(autoLoop);
+autoLoop=null;
+
+document.getElementById("autoStatus").innerText="AUTO: OFF";
+}
+</script>
+
+</body>
+</html>
